@@ -52,6 +52,21 @@
 
 static str auth_500_err = str_init("Server Internal Error");
 
+// add by wangsn
+static int make_home_name(char *name, int len, char *home_name){
+    char *str=NULL;
+    if(len > 127){
+        return -1;
+    }
+    strncpy(home_name, name, len);
+    str=strchr(home_name,'_');
+    if(str == NULL){
+        home_name[0]='\0';
+        return -1;
+    }
+    str[0]='\0';
+    return 0;
+}
 
 static inline int get_ha1(struct username* _username, str* _domain,
 			  const str* _table, char* _ha1, db_res_t** res)
@@ -65,6 +80,16 @@ static inline int get_ha1(struct username* _username, str* _domain,
 	static db_ps_t auth_ha1b_ps = NULL;
 
 	int n, nc;
+    
+    // add by wangsn
+    char home_name[128];
+    if(make_home_name(_username->user.s, _username->user.len,
+                home_name) == -1){
+        LM_ERR("error format username %.*s\n",
+                _username->user.len, _username->user.s);
+        return -2;
+
+    }
 
 	col = pkg_malloc(sizeof(*col) * (credentials_n + 1));
 	if (col == NULL) {
@@ -91,8 +116,10 @@ static inline int get_ha1(struct username* _username, str* _domain,
 	VAL_TYPE(vals) = VAL_TYPE(vals + 1) = DB_STR;
 	VAL_NULL(vals) = VAL_NULL(vals + 1) = 0;
 
-	VAL_STR(vals).s = _username->user.s;
-	VAL_STR(vals).len = _username->user.len;
+	//VAL_STR(vals).s = _username->user.s;
+	//VAL_STR(vals).len = _username->user.len;
+    VAL_STR(vals).s = home_name;
+    VAL_STR(vals).len = strlen(home_name);
 
 	if (_username->domain.len) {
 		VAL_STR(vals + 1) = _username->domain;

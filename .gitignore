@@ -4,6 +4,7 @@
 *.sw?
 tags
 cscope*
+*~
 
 # /
 /cfg.tab.c
