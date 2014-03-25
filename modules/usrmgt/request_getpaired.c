@@ -1,4 +1,5 @@
 #include "usrmgt.h"
+#include "../usrloc/ucontact.h"
 
 /* get bind devlist by phone id
  * one phone may bind to more than one device
@@ -12,6 +13,8 @@ int getpaireddev(struct request_msg *r,str **r1){
     char *all_contacts;
     int cblen=4096;
     char *pu;
+
+    ucontact_t uc;
     
     int rval;
     
@@ -148,10 +151,12 @@ int getpaireddev(struct request_msg *r,str **r1){
             }
         }
         pu+=n;
-        pu+=sizeof(struct socket_info *); //skip socket_info
-        pu+=sizeof(unsigned int);   // skip flags
-        memcpy(&n,pu,sizeof(n));
-        pu+=(n+sizeof(n));  // skip path
+        memcpy(&n,pu,sizeof(n)); 
+        pu+=sizeof(n); //path len
+        pu+=n; // path
+        pu+=sizeof(uc.sock); //skip socket_info
+        pu+=sizeof(uc.flags);   // skip flags
+        pu+=sizeof(uc.next_hop); // next hop
     }
     char tmp[10];
     for(p1=idl;p1 && p1->id;p1=p1->next){
