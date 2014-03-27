@@ -5,13 +5,13 @@ int handle_unbind(struct request_msg *r){
     char query_buf[1024];
     db_res_t *res;
     str qstr;
-    if((!r->devid) || (!r->phoneid)){
+    if((!r->devid.s) || (!r->phoneid.s)){
         LM_ERR("invalid argument\n");
         ret=-1;
         goto err1;
     }
-    sprintf(query_buf,"delete from phonedevpaired where serial='%s' and phoneid='%s';",
-            r->devid, r->phoneid);
+    sprintf(query_buf,"delete from phonedevpaired where serial='%.*s' and phoneid='%.*s';",
+            r->devid.len, r->devid.s, r->phoneid.len, r->phoneid.s);
     qstr.s=query_buf;
     qstr.len=strlen(query_buf);
     if(dbf.raw_query(db_handle,&qstr,&res) < 0){
