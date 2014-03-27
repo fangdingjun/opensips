@@ -20,14 +20,14 @@
 #ifndef _USRMGT_H
 #define _USRMGT_H
 
-db_con_t* db_handle; /* database connection handle */
-db_con_t * db_handle2; /* product information handle */
-db_func_t dbf; /* database function handle*/
+db_con_t *db_handle;            /* database connection handle */
+db_con_t *db_handle2;           /* product information handle */
+db_func_t dbf;                  /* database function handle */
 
 /** SIGNALING binds */
 struct sig_binds sigb;
 
-struct request_msg{
+struct request_msg {
     str func;
     str devid;
     str phoneid;
@@ -35,11 +35,11 @@ struct request_msg{
     str snsname;
 };
 
-int parse_req_msg(char *b,struct request_msg *r);
+int parse_req_msg(char *b, struct request_msg *r);
 void free_req_msg(struct request_msg *r);
 int handle_paired(struct request_msg *r1);
-int getpaireddev(struct request_msg *r1,str **r2);
-int getonlinelist(str **s);
+int getpaireddev(struct request_msg *r1, str ** r2);
+int getonlinelist(str ** s);
 int handle_unbind(struct request_msg *r);
 usrloc_api_t ul;
 #endif
