@@ -7,6 +7,7 @@ int getonlinelist(str **s){
     int cblen=4096;
     int n;
     ucontact_t uc;
+    int ret=0;
 
     //struct socket_info *send_sock;
     //unsigned int flags;
@@ -14,7 +15,8 @@ int getonlinelist(str **s){
     rval=ul.get_all_ucontacts(buf,cblen,0,0,1);
     if(rval < 0){
         LM_ERR("failed to fetch contacts\n");
-        return -1;
+        ret = -1;
+        goto err2;
     }
     if(rval > 0){
         if(buf!=NULL)
@@ -24,14 +26,15 @@ int getonlinelist(str **s){
         buf=pkg_malloc(cblen);
         rval=ul.get_all_ucontacts(buf,cblen,0,0,1);
         if(rval !=0 ){
-            pkg_free(buf);
             LM_ERR("get ucontacts failed\n");
-            return -1;
+            ret = -1;
+            goto err2;
         }
     }
     if(buf==NULL){
         LM_ERR("null buff\n");
-        return -1;
+        ret = -1;
+        goto err1;
     }
     char *cp;
     cp=buf;
@@ -74,7 +77,9 @@ int getonlinelist(str **s){
     }
     (*s)->s[(*s)->len]='\0';
     LM_DBG("s->s %s\n",(*s)->s);
+    ret = 0;
+err2:
     pkg_free(buf);
-    return 0;
-
+err1:
+    return ret;
 }

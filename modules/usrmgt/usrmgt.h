@@ -40,5 +40,6 @@ void free_req_msg(struct request_msg *r);
 int handle_paired(struct request_msg *r1);
 int getpaireddev(struct request_msg *r1,str **r2);
 int getonlinelist(str **s);
+int handle_unbind(struct request_msg *r);
 usrloc_api_t ul;
 #endif

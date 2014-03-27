@@ -11,7 +11,7 @@ int handle_paired(struct request_msg *r){
     //str serial_m;
     char *p2;
     int ret=0;
-    
+
     LM_DBG("devid: |%s|, phoneid: |%s|\n", r->devid.s,r->phoneid.s);
 
     if((!r->devid.s) || (!r->phoneid.s)){ /* devid or phoneid is NULL */
@@ -19,14 +19,14 @@ int handle_paired(struct request_msg *r){
         ret = -1;
         goto err1;
     }
-    
+
     p2=strchr(r->devid.s,'_'); /* check if the format is vendor_serial */
     if(!p2){
         LM_ERR("invalid devid\n");
         ret=-1;
         goto err1;
     }
-    
+
     /* get the vendor */
     vendor.len=p2-(r->devid.s);
     vendor.s=pkg_malloc(vendor.len+1);
@@ -37,7 +37,7 @@ int handle_paired(struct request_msg *r){
     }
     strncpy(vendor.s,r->devid.s,vendor.len);
     vendor.s[vendor.len]='\0';
-    
+
     /* get the serial */
     serial.len=r->devid.len-vendor.len-1;
     serial.s=pkg_malloc(serial.len+1);
@@ -49,7 +49,7 @@ int handle_paired(struct request_msg *r){
     p2++;
     strncpy(serial.s,p2,serial.len);
     serial.s[serial.len]='\0';
-    
+
     /* check if the devid is exists */
     sprintf(query_buf,
             "select serial from %s where serial='%s';",vendor.s,serial.s);
@@ -78,7 +78,7 @@ int handle_paired(struct request_msg *r){
     /* check if already paired */
     sprintf(query_buf,
             "select phoneid from phonedevpaired where phoneid='%s' and serial = '%s';",
-                r->phoneid.s,r->devid.s);
+            r->phoneid.s,r->devid.s);
     LM_DBG("query: %s\n",query_buf);
     query_str.s=query_buf;
     query_str.len=strlen(query_buf);

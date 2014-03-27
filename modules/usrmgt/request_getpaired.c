@@ -9,15 +9,15 @@ int getpaireddev(struct request_msg *r,str **r1){
     str query_str;
     db_res_t *res;
     str body;
-    
+
     char *all_contacts;
     int cblen=4096;
     char *pu;
 
     ucontact_t uc;
-    
+
     int rval;
-    
+
     int i;
     struct id_r{
         char *id;
@@ -79,7 +79,7 @@ int getpaireddev(struct request_msg *r,str **r1){
     dbf.free_result(db_handle,res);
 
     LM_DBG("allocate memory for body\n");
-    
+
     body.len=0;
     body.s=(char *)pkg_malloc(4096);
     if(!body.s){
@@ -99,14 +99,14 @@ int getpaireddev(struct request_msg *r,str **r1){
         errcode=-1;
         goto err3;
     }
-    
+
     rval=ul.get_all_ucontacts(all_contacts,cblen,0,0,1);
     if(rval < 0){
         LM_ERR("failed to fetch contacts\n");
         errcode=-1;
         goto err4;
     }
-    
+
     if(rval > 0){
         if(all_contacts != NULL) pkg_free(all_contacts);
         cblen+= (rval+128);
@@ -123,7 +123,7 @@ int getpaireddev(struct request_msg *r,str **r1){
             errcode=-1;
             goto err4;
         }
-        
+
     }
     if(all_contacts == NULL){
         LM_ERR("null contacts\n");
@@ -176,7 +176,7 @@ int getpaireddev(struct request_msg *r,str **r1){
     (*r1)->s=(char *)pkg_malloc(body.len+1);
     strcpy((*r1)->s,body.s);
     (*r1)->len=body.len;
-    
+
 err4:
     LM_DBG("free contacts\n");
     pkg_free(all_contacts);
