@@ -1,5 +1,7 @@
 #include "usrmgt.h"
 
+extern int verify_devid;
+
 /* handle the paried request */
 int handle_paired(struct request_msg *r)
 {
@@ -28,54 +30,57 @@ int handle_paired(struct request_msg *r)
         goto err1;
     }
 
-    /* get the vendor */
-    vendor.len = p2 - (r->devid.s);
-    vendor.s = pkg_malloc(vendor.len + 1);
-    if (!vendor.s) {
-        LM_ERR("out of memory\n");
-        ret = -1;
-        goto err1;
-    }
-    strncpy(vendor.s, r->devid.s, vendor.len);
-    vendor.s[vendor.len] = '\0';
+    /* verify devid */
+    if (verify_devid) {
+        /* get the vendor */
+        vendor.len = p2 - (r->devid.s);
+        vendor.s = pkg_malloc(vendor.len + 1);
+        if (!vendor.s) {
+            LM_ERR("out of memory\n");
+            ret = -1;
+            goto err1;
+        }
+        strncpy(vendor.s, r->devid.s, vendor.len);
+        vendor.s[vendor.len] = '\0';
 
-    /* get the serial */
-    serial.len = r->devid.len - vendor.len - 1;
-    serial.s = pkg_malloc(serial.len + 1);
-    if (!serial.s) {
-        LM_ERR("out of memory\n");
-        ret = -1;
-        goto err2;
-    }
-    p2++;
-    strncpy(serial.s, p2, serial.len);
-    serial.s[serial.len] = '\0';
+        /* get the serial */
+        serial.len = r->devid.len - vendor.len - 1;
+        serial.s = pkg_malloc(serial.len + 1);
+        if (!serial.s) {
+            LM_ERR("out of memory\n");
+            ret = -1;
+            goto err2;
+        }
+        p2++;
+        strncpy(serial.s, p2, serial.len);
+        serial.s[serial.len] = '\0';
 
-    /* check if the devid is exists */
-    sprintf(query_buf,
-            "select serial from %s where serial='%s';", vendor.s,
-            serial.s);
-    LM_DBG("query: %s\n", query_buf);
-    query_str.s = query_buf;
-    query_str.len = strlen(query_buf);
+        /* check if the devid is exists */
+        sprintf(query_buf,
+                "select serial from %s where serial='%s';", vendor.s,
+                serial.s);
+        LM_DBG("query: %s\n", query_buf);
+        query_str.s = query_buf;
+        query_str.len = strlen(query_buf);
 
-    /* execute the SQL */
-    if (dbf.raw_query(db_handle2, &query_str, &res) < 0) {
-        LM_ERR("failed to query devid\n");
-        ret = -1;
-        goto err3;
-    }
+        /* execute the SQL */
+        if (dbf.raw_query(db_handle2, &query_str, &res) < 0) {
+            LM_ERR("failed to query devid\n");
+            ret = -1;
+            goto err3;
+        }
 
-    /* result row */
-    if (RES_ROW_N(res) == 0) {
-        LM_ERR("devid not exists\n");
+        /* result row */
+        if (RES_ROW_N(res) == 0) {
+            LM_ERR("devid not exists\n");
+            dbf.free_result(db_handle, res);
+            ret = -2;
+            goto err3;
+        }
+
+        /* free result */
         dbf.free_result(db_handle, res);
-        ret = -2;
-        goto err3;
     }
-
-    /* free result */
-    dbf.free_result(db_handle, res);
 
     /* check if already paired */
     sprintf(query_buf,

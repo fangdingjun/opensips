@@ -37,6 +37,7 @@ static int options_func(struct sip_msg *_msg, char *_foo, char *_bar);
 
 static str db_url = { NULL, 0 };    /* user infomation db connect string */
 static str db_url2 = { NULL, 0 };   /* product infomation db connect string */
+int verify_devid = 0;               /* if verify devid when bind */
 
 /* response code*/
 static str opt_200_rpl = str_init("OK");
@@ -63,6 +64,7 @@ static param_export_t params[] = {
     //{"support",     STR_PARAM, &supt_c},
     {"db_url", STR_PARAM, &db_url.s},
     {"db_url2", STR_PARAM, &db_url2.s},
+    {"verify_devid", INT_PARAM, &verify_devid},
     {0, 0, 0}
 };
 
