@@ -28,18 +28,23 @@ db_func_t dbf;                  /* database function handle */
 struct sig_binds sigb;
 
 struct request_msg {
-    str func;
-    str devid;
-    str phoneid;
-    str snstype;
-    str snsname;
+    str func;                   /* operation */
+    str devid;                  /* device account */
+    str phoneid;                /* phone account */
+    str snstype;                /* sns type */
+    str snsname;                /* sns name */
+    str license;                /* temporay license */
+    str active_code;            /* active code */
+    int ttl;                    /* time to live */
 };
 
 int parse_req_msg(char *b, struct request_msg *r);
 void free_req_msg(struct request_msg *r);
-int handle_paired(struct request_msg *r1);
+int handle_paired(struct request_msg *r1, str ** ret);
 int getpaireddev(struct request_msg *r1, str ** r2);
-int getonlinelist(str ** s);
-int handle_unbind(struct request_msg *r);
+int getonlinelist(struct request_msg *r1, str ** s);
+int handle_unbind(struct request_msg *r, str ** ret);
+int license_put(struct request_msg *r, str ** ret);
+int license_get(struct request_msg *r, str ** ret);
 usrloc_api_t ul;
 #endif

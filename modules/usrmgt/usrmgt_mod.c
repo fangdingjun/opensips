@@ -23,8 +23,9 @@
  *
  * History:
  * -------
+ *  2014-04-17: change the code structure
  *  2014-3-24: add device vendor and serail check
- * 2014-02-22: done the basic functon
+ *  2014-02-22: done the basic functon
  */
 
 #include "usrmgt.h"
@@ -37,7 +38,8 @@ static int options_func(struct sip_msg *_msg, char *_foo, char *_bar);
 
 static str db_url = { NULL, 0 };    /* user infomation db connect string */
 static str db_url2 = { NULL, 0 };   /* product infomation db connect string */
-int verify_devid = 0;               /* if verify devid when bind */
+
+int verify_devid = 0;           /* if verify devid when bind */
 
 /* response code*/
 static str opt_200_rpl = str_init("OK");
@@ -85,6 +87,22 @@ struct module_exports exports = {
     0,                          /* Response function */
     destroy,                    /* Destroy function */
     child_init                  /* Child init function */
+};
+
+struct method {
+    char *name;                 /* method name */
+    int (*func) (struct request_msg * req, str ** ret); /* function to call */
+};
+
+/* the method and the function */
+struct method m_list[] = {
+    {"bind", handle_paired},
+    {"unbind", handle_unbind},
+    {"getonlinelist", getonlinelist},
+    {"getbinddev", getpaireddev},
+    {"licese_put", license_put},
+    {"license_get", license_get},
+    {0, 0}
 };
 
 /* module destroy callback*/
@@ -164,7 +182,10 @@ static int options_func(struct sip_msg *_msg, char *_table, char *_bar)
 {
     str body;                   /* sip message body */
     struct request_msg parsed_msg;  /* save parsed request message */
-    int ret = 0;
+    int ret = 0;                /* result */
+    str *res = NULL;            /* result return from function */
+    int done = 0;               /* the function is callled or not */
+    int i;
 
     LM_DBG("begin to parse msg\n");
 
@@ -187,12 +208,7 @@ static int options_func(struct sip_msg *_msg, char *_table, char *_bar)
     memset(&parsed_msg, 0, sizeof(parsed_msg));
 
     /* parse the request message */
-    if (parse_req_msg(body.s, &parsed_msg) < 0) {
-        LM_DBG("request message in wrong format\n");
-        sigb.reply(_msg, 400, &opt_400_rpl, NULL);
-        ret = -1;
-        goto error2;
-    }
+    parse_req_msg(body.s, &parsed_msg);
 
     if (!parsed_msg.func.s) {
         LM_ERR("can not found function keyword\n");
@@ -200,99 +216,54 @@ static int options_func(struct sip_msg *_msg, char *_table, char *_bar)
         ret = -1;
         goto error1;
     }
-    LM_DBG("msg function |%s|\n", parsed_msg.func.s);
-    do {
-        /* hande paired request */
-        if (strncasecmp(parsed_msg.func.s, "bind", parsed_msg.func.len) == 0) { /* bind method */
-            ret = handle_paired(&parsed_msg);
-            if (ret == -1) {
-                LM_DBG("database operate failed\n");
-                sigb.reply(_msg, 500, &opt_500_rpl, NULL);
-                goto error1;
-            } else if (ret == -2) {
-                LM_DBG("paired failed\n");
-                sigb.reply(_msg, 400, &opt_400_rpl, NULL);
-                goto error1;
-            }
+
+    ret = -1;
+
+    for (i = 0; m_list[i].name != NULL && m_list[i].func != NULL; i++) {
+        if (strncmp(m_list[i].name, parsed_msg.func.s, parsed_msg.func.len)
+            == 0) {
+
+            /* call function */
+            ret = m_list[i].func(&parsed_msg, &res);
+            done = 1;
             break;
         }
+    }
 
-        /* handle getbinddev */
-        if (strncasecmp(parsed_msg.func.s, "getbinddev", parsed_msg.func.len) == 0) {   /* getbinddev method */
-            str *rr = NULL;
-            LM_DBG("call getbinddev\n");
-            ret = getpaireddev(&parsed_msg, &rr);
-            LM_DBG("after call getbinddev\n");
-            if (ret != 0) {
-                if (ret == -2 || ret == -3) {
-                    sigb.reply(_msg, 400, &opt_400_rpl, NULL);
-                } else {
-                    sigb.reply(_msg, 500, &opt_500_rpl, NULL);
-                }
-                goto error1;
-            }
-            if (!rr) {
-                LM_ERR("rr is NULL\n");
-                sigb.reply(_msg, 500, &opt_500_rpl, NULL);
-                ret = -1;
-                goto error1;
-            }
-            LM_DBG("rr.s %s rr.len %d\n", rr->s, rr->len);
-            if (rr->len) {
-                str h_type;
-                h_type.s = (char *) pkg_malloc(strlen(hdr) + 1);
-                strcpy(h_type.s, hdr);
-                h_type.len = strlen(hdr);
-                add_lump_rpl(_msg, h_type.s, h_type.len,
-                             LUMP_RPL_HDR | LUMP_RPL_NODUP);
-                add_lump_rpl(_msg, rr->s, rr->len, LUMP_RPL_BODY);
-            }
-            if (rr)
-                pkg_free(rr);
-            break;
-        }
-
-        /* handle getonlinelist */
-        if (strncasecmp(parsed_msg.func.s, "getonlinelist", parsed_msg.func.len) == 0) {    /* get online usr list */
-            str *s;
-            getonlinelist(&s);
-            if (s->len) {
-                str h_type;
-                h_type.s = (char *) pkg_malloc(strlen(hdr) + 1);
-                strcpy(h_type.s, hdr);
-                h_type.len = strlen(hdr);
-                add_lump_rpl(_msg, h_type.s, h_type.len,
-                             LUMP_RPL_HDR | LUMP_RPL_NODUP);
-                add_lump_rpl(_msg, s->s, s->len, LUMP_RPL_BODY);
-                //pkg_free(s);
-            }
-            if (s)
-                pkg_free(s);
-            break;
-        }
-
-        /* handle unbind */
-        if (strncasecmp(parsed_msg.func.s, "unbind",
-                        parsed_msg.func.len) == 0) {
-
-            if (handle_unbind(&parsed_msg) < 0) {
-                sigb.reply(_msg, 500, &opt_500_rpl, NULL);
-                ret = -1;
-                goto error1;
-            }
-            break;
-        }
-
-        /* here is no match */
-        ret = -1;
+    if (!done) {
         sigb.reply(_msg, 400, &opt_400_rpl, NULL);
-        goto error1;
+        goto error3;
+    }
 
-    } while (0);
+    if (ret == 0 && res != NULL && res->len > 0) {
+        /* prepare for response */
+        char *h_hdr = (char *) pkg_malloc(strlen(hdr) + 1);
+        char *bdy = (char *) pkg_malloc(res->len + 1);
+        strcpy(h_hdr, hdr);
+        strncpy(bdy, res->s, res->len);
+        bdy[res->len] = '\0';
 
-    sigb.reply(_msg, 200, &opt_200_rpl, NULL);
-    ret = 0;
+        /* add header type */
+        add_lump_rpl(_msg, h_hdr, strlen(h_hdr),
+                     LUMP_RPL_HDR | LUMP_RPL_NODUP);
 
+        /* add body */
+        add_lump_rpl(_msg, bdy, strlen(bdy), LUMP_RPL_BODY);
+    }
+    if (ret == 0) {
+        sigb.reply(_msg, 200, &opt_200_rpl, NULL);
+    } else if (ret == -1) {
+        sigb.reply(_msg, 400, &opt_400_rpl, NULL);
+    } else {
+        sigb.reply(_msg, 500, &opt_500_rpl, NULL);
+    }
+
+  error3:
+    if (res) {
+        if (res->s)
+            pkg_free(res->s);
+        pkg_free(res);
+    }
   error1:
     free_req_msg(&parsed_msg);
   error2:

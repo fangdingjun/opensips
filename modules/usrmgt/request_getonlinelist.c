@@ -1,7 +1,7 @@
 #include "usrmgt.h"
 #include "../usrloc/ucontact.h"
 
-int getonlinelist(str ** s)
+int getonlinelist(struct request_msg *msg, str ** s)
 {
     int rval;
     void *buf;

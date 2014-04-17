@@ -3,13 +3,13 @@
 extern int verify_devid;
 
 /* handle the paried request */
-int handle_paired(struct request_msg *r)
+int handle_paired(struct request_msg *r, str ** resb)
 {
     char query_buf[1024];       /* the buffer for SQL */
     db_res_t *res;
-    str query_str={0,0};
-    str vendor={0,0};                 // the vendor of devid
-    str serial={0,0};                 // the serial of devid
+    str query_str = { 0, 0 };
+    str vendor = { 0, 0 };      // the vendor of devid
+    str serial = { 0, 0 };      // the serial of devid
     //str vendor_m;  
     //str serial_m;
     char *p2;
@@ -118,9 +118,11 @@ int handle_paired(struct request_msg *r)
 
     ret = 0;
   err3:
-    if(serial.s) pkg_free(serial.s);
+    if (serial.s)
+        pkg_free(serial.s);
   err2:
-    if(vendor.s) pkg_free(vendor.s);
+    if (vendor.s)
+        pkg_free(vendor.s);
   err1:
     return ret;
 }

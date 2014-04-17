@@ -1,6 +1,6 @@
 #include "usrmgt.h"
 
-int handle_unbind(struct request_msg *r)
+int handle_unbind(struct request_msg *r, str ** resb)
 {
     int ret = 0;
     char query_buf[1024];
