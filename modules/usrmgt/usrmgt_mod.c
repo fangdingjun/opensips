@@ -100,7 +100,7 @@ struct method m_list[] = {
     {"unbind", handle_unbind},
     {"getonlinelist", getonlinelist},
     {"getbinddev", getpaireddev},
-    {"licese_put", license_put},
+    {"license_put", license_put},
     {"license_get", license_get},
     {0, 0}
 };

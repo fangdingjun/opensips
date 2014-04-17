@@ -52,7 +52,7 @@ int parse_req_msg(char *b, struct request_msg *r)
     get_string_value("phoneid", b, &r->phoneid);
     get_string_value("snsname", b, &r->snsname);
     get_string_value("snstype", b, &r->snstype);
-    get_string_value("license", b, &r->license);
+    get_string_value("tmplic", b, &r->license);
     get_string_value("activecode", b, &r->active_code);
     get_int_value("ttl", b, &r->ttl);
 
@@ -130,6 +130,7 @@ int get_string_value(char *keyname, char *buffer, str * dest)
 
     /* copy to destination */
     strncpy(dest->s, p1, dest->len);
+    dest->s[dest->len] = '\0';
 
     return 0;
 }
