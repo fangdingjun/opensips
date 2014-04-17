@@ -168,11 +168,15 @@ static inline void fm_remove_free(struct fm_block* qm, struct fm_frag* n)
 	pf = n->prev;
 	hash = GET_HASH( n->size );
 
-	/* detach */
-	*pf=n->u.nxt_free;
+    /* detach */
+    if(pf){
+        *pf=n->u.nxt_free;
 
-	if( n->u.nxt_free )
-		n->u.nxt_free->prev = pf;
+        if( n->u.nxt_free )
+            n->u.nxt_free->prev = pf;
+    }else{
+        LM_ERR("pf is NULL\n");
+    }
 
 	qm->free_hash[hash].no--;
 
