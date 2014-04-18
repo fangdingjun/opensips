@@ -8,12 +8,12 @@ int getpaireddev(struct request_msg *r, str ** r1)
 {
     char buf[128];
     str query_str;
-    db_res_t *res;
-    str body;
+    db_res_t *res=NULL;
+    str body={0,0};
 
-    char *all_contacts;
+    char *all_contacts=NULL;
     int cblen = 4096;
-    char *pu;
+    char *pu=NULL;
 
     ucontact_t uc;
 
@@ -59,9 +59,9 @@ int getpaireddev(struct request_msg *r, str ** r1)
     }
 
     if (RES_ROW_N(res) == 0) {
-        LM_ERR("empty result\n");
+        LM_DBG("empty result\n");
         dbf.free_result(db_handle, res);
-        errcode = -3;
+        errcode = 0;
         goto err2;
     }
 
