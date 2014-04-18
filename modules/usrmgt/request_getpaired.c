@@ -31,6 +31,10 @@ int getpaireddev(struct request_msg *r, str ** r1)
 
     /* allocate memory for id list */
     idl = (struct id_r *) pkg_malloc(sizeof(struct id_r));
+    if (!idl) {
+        LM_ERR("out of memory\n");
+        return -2;
+    }
     idl->id = NULL;
     idl->online = 0;
     idl->next = NULL;
@@ -58,7 +62,7 @@ int getpaireddev(struct request_msg *r, str ** r1)
         LM_ERR("empty result\n");
         dbf.free_result(db_handle, res);
         errcode = -3;
-        goto err1;
+        goto err2;
     }
 
     p1 = idl;
@@ -68,10 +72,20 @@ int getpaireddev(struct request_msg *r, str ** r1)
         tmp = RES_ROWS(res)[i].values[0].val.string_val;
         n = strlen(tmp);
         p1->id = (char *) pkg_malloc(n + 1);
+        if (!(p1->id)) {
+            LM_ERR("out of memory\n");
+            errcode = -2;
+            goto err2;
+        }
         strcpy(p1->id, tmp);
         p1->online = 0;
         struct id_r *t;
         t = (struct id_r *) pkg_malloc(sizeof(struct id_r));
+        if (!t) {
+            LM_ERR("out of memory\n");
+            errcode = -2;
+            goto err2;
+        }
         p1->next = t;
         p1 = p1->next;
         p1->id = NULL;
@@ -83,10 +97,10 @@ int getpaireddev(struct request_msg *r, str ** r1)
 
     body.len = 0;
     body.s = (char *) pkg_malloc(4096);
-    if (!body.s) {
+    if (!(body.s)) {
         LM_ERR("out of memory\n");
-        errcode = -1;
-        goto err3;
+        errcode = -2;
+        goto err2;
     }
     //strcpy(body.s,"devlist\r\n");
     sprintf(body.s, "devlist %s\r\n", r->phoneid.s);
@@ -97,7 +111,7 @@ int getpaireddev(struct request_msg *r, str ** r1)
     all_contacts = pkg_malloc(cblen);
     if (!all_contacts) {
         LM_ERR("out of memory\n");
-        errcode = -1;
+        errcode = -2;
         goto err3;
     }
 
@@ -176,13 +190,24 @@ int getpaireddev(struct request_msg *r, str ** r1)
     LM_DBG("done\n");
     /* the return result */
     *r1 = (str *) pkg_malloc(sizeof(str));
+    if (!(*r1)) {
+        LM_ERR("out of memory\n");
+        errcode = -2;
+        goto err4;
+    }
     (*r1)->s = (char *) pkg_malloc(body.len + 1);
+    if (!((*r1)->s)) {
+        LM_ERR("out of memory\n");
+        errcode = -2;
+        goto err4;
+    }
     strcpy((*r1)->s, body.s);
     (*r1)->len = body.len;
 
   err4:
     LM_DBG("free contacts\n");
-    pkg_free(all_contacts);
+    if (all_contacts)
+        pkg_free(all_contacts);
   err3:
     LM_DBG("free tmp body\n");
     if (body.s)

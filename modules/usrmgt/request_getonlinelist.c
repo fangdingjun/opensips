@@ -13,6 +13,11 @@ int getonlinelist(struct request_msg *msg, str ** s)
     //struct socket_info *send_sock;
     //unsigned int flags;
     buf = pkg_malloc(cblen);
+    if (!buf) {
+        LM_ERR("out of memory\n");
+        ret = -2;
+        goto err1;
+    }
     rval = ul.get_all_ucontacts(buf, cblen, 0, 0, 1);
     if (rval < 0) {
         LM_ERR("failed to fetch contacts\n");
@@ -25,6 +30,11 @@ int getonlinelist(struct request_msg *msg, str ** s)
         cblen += rval + 128;
         LM_DBG("remalloc for buf\n");
         buf = pkg_malloc(cblen);
+        if (!buf) {
+            LM_ERR("out of memory\n");
+            ret = -2;
+            goto err1;
+        }
         rval = ul.get_all_ucontacts(buf, cblen, 0, 0, 1);
         if (rval != 0) {
             LM_ERR("get ucontacts failed\n");
@@ -40,8 +50,18 @@ int getonlinelist(struct request_msg *msg, str ** s)
     char *cp;
     cp = buf;
     *s = pkg_malloc(sizeof(str *));
+    if (!(*s)) {
+        LM_ERR("out of memory\n");
+        ret = -2;
+        goto err2;
+    }
     (*s)->len = 0;
     (*s)->s = pkg_malloc(4096);
+    if (!((*s)->s)) {
+        LM_ERR("out of memory\n");
+        ret = -2;
+        goto err2;
+    }
     strcpy((*s)->s, "userlist:");
     (*s)->len = strlen((*s)->s);
     int nt = (*s)->len;
@@ -82,7 +102,8 @@ int getonlinelist(struct request_msg *msg, str ** s)
     LM_DBG("s->s %s\n", (*s)->s);
     ret = 0;
   err2:
-    pkg_free(buf);
+    if (buf)
+        pkg_free(buf);
   err1:
     return ret;
 }

@@ -238,7 +238,17 @@ static int options_func(struct sip_msg *_msg, char *_table, char *_bar)
     if (ret == 0 && res != NULL && res->len > 0) {
         /* prepare for response */
         char *h_hdr = (char *) pkg_malloc(strlen(hdr) + 1);
+        if(!h_hdr){
+            LM_ERR("out of memory\n");
+            sigb.reply(_msg, 500, &opt_500_rpl, NULL);
+            goto error3;
+        }
         char *bdy = (char *) pkg_malloc(res->len + 1);
+        if(!bdy){
+            sigb.reply(_msg, 500, &opt_500_rpl, NULL);
+            LM_ERR("out of memory\n");
+            goto error3;
+        }
         strcpy(h_hdr, hdr);
         strncpy(bdy, res->s, res->len);
         bdy[res->len] = '\0';
