@@ -37,7 +37,8 @@ int handle_paired(struct request_msg *r, str ** resb)
         vendor.s = pkg_malloc(vendor.len + 1);
         if (!vendor.s) {
             LM_ERR("out of memory\n");
-            ret = -1;
+            ret = -2;
+            vendor.len = 0;
             goto err1;
         }
         strncpy(vendor.s, r->devid.s, vendor.len);
@@ -48,7 +49,8 @@ int handle_paired(struct request_msg *r, str ** resb)
         serial.s = pkg_malloc(serial.len + 1);
         if (!serial.s) {
             LM_ERR("out of memory\n");
-            ret = -1;
+            serial.len = 0;
+            ret = -2;
             goto err2;
         }
         p2++;
@@ -66,7 +68,7 @@ int handle_paired(struct request_msg *r, str ** resb)
         /* execute the SQL */
         if (dbf.raw_query(db_handle2, &query_str, &res) < 0) {
             LM_ERR("failed to query devid\n");
-            ret = -1;
+            ret = -2;
             goto err3;
         }
 
@@ -74,7 +76,7 @@ int handle_paired(struct request_msg *r, str ** resb)
         if (RES_ROW_N(res) == 0) {
             LM_ERR("devid not exists\n");
             dbf.free_result(db_handle, res);
-            ret = -2;
+            ret = -1;
             goto err3;
         }
 
@@ -91,7 +93,7 @@ int handle_paired(struct request_msg *r, str ** resb)
     query_str.len = strlen(query_buf);
     if (dbf.raw_query(db_handle, &query_str, &res) < 0) {
         LM_ERR("failed to query paired devid\n");
-        ret = -1;
+        ret = -2;
         goto err3;
     }
     if (RES_ROW_N(res) > 0) {
@@ -111,7 +113,7 @@ int handle_paired(struct request_msg *r, str ** resb)
     query_str.len = strlen(query_buf);
     if (dbf.raw_query(db_handle, &query_str, &res) < 0) {
         LM_ERR("failed to insert to database\n");
-        ret = -1;
+        ret = -2;
         goto err3;
     }
     dbf.free_result(db_handle, res);

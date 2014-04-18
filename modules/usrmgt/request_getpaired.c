@@ -8,12 +8,12 @@ int getpaireddev(struct request_msg *r, str ** r1)
 {
     char buf[128];
     str query_str;
-    db_res_t *res=NULL;
-    str body={0,0};
+    db_res_t *res = NULL;
+    str body = { 0, 0 };
 
-    char *all_contacts=NULL;
+    char *all_contacts = NULL;
     int cblen = 4096;
-    char *pu=NULL;
+    char *pu = NULL;
 
     ucontact_t uc;
 
@@ -199,6 +199,7 @@ int getpaireddev(struct request_msg *r, str ** r1)
     if (!((*r1)->s)) {
         LM_ERR("out of memory\n");
         errcode = -2;
+        (*r1)->len = 0;
         goto err4;
     }
     strcpy((*r1)->s, body.s);
