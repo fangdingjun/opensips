@@ -35,6 +35,7 @@ struct request_msg {
     str snsname;                /* sns name */
     str license;                /* temporay license */
     str active_code;            /* active code */
+    str uuid;                   /* serial */
     int ttl;                    /* time to live */
 };
 

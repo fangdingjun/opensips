@@ -54,6 +54,7 @@ int parse_req_msg(char *b, struct request_msg *r)
     get_string_value("snstype", b, &r->snstype);
     get_string_value("tmplic", b, &r->license);
     get_string_value("activecode", b, &r->active_code);
+    get_string_value("uuid", b, &r->uuid);
     get_int_value("ttl", b, &r->ttl);
 
     return 0;
@@ -125,6 +126,8 @@ int get_string_value(char *keyname, char *buffer, str * dest)
     dest->s = (char *) pkg_malloc(dest->len + 1);
 
     if (!dest->s) {
+        LM_ERR("out of memory\n");
+        dest->len = 0;
         return -5;
     }
 
