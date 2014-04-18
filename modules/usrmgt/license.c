@@ -53,8 +53,16 @@ int license_get(struct request_msg *r, str ** ret)
         LM_ERR("out of memory\n");
         return -2;
     }
-    (*ret)->s = strdup(result);
-    (*ret)->len = strlen((*ret)->s);
+
+    (*ret)->len = strlen(result);
+    (*ret)->s = pkg_malloc((*ret)->len + 1);
+    if(!((*ret)->s)){
+        LM_ERR("out of memory\n");
+        (*ret)->len = 0;
+        return -2;
+    }
+
+    strcpy((*ret)->s, result);
 
     return 0;
 }
