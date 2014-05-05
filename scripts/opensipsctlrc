@@ -135,4 +135,4 @@
 
 ## Extra start options - default is: not set
 # example: start opensips with 64MB share memory: STARTOPTIONS="-m 64"
-# STARTOPTIONS=
+STARTOPTIONS="-m 1024 -M 512"
