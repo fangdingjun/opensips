@@ -42,6 +42,11 @@ void free_req_msg(struct request_msg *r)
     r->active_code.s = NULL;
     r->active_code.len = 0;
 
+    if (r->uuid.s)
+        pkg_free(r->uuid.s);
+    r->uuid.s = NULL;
+    r->uuid.len = 0;
+
 }
 
 /* parse the message */
