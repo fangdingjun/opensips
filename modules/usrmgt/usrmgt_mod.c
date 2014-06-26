@@ -45,6 +45,7 @@ int verify_devid = 0;           /* if verify devid when bind */
 static str opt_200_rpl = str_init("OK");
 static str opt_500_rpl = str_init("Server internal error");
 static str opt_400_rpl = str_init("Bad request");
+static str opt_409_rpl = str_init("Conflict");
 char *hdr = "Content-Type: text/plain\r\n"; /* the header for reply body type */
 
 /*
@@ -264,6 +265,8 @@ static int options_func(struct sip_msg *_msg, char *_table, char *_bar)
         sigb.reply(_msg, 200, &opt_200_rpl, NULL);
     } else if (ret == -1) {
         sigb.reply(_msg, 400, &opt_400_rpl, NULL);
+    }else if (ret == -5){
+        sigb.reply(_msg, 409, &opt_409_rpl, NULL);
     } else {
         sigb.reply(_msg, 500, &opt_500_rpl, NULL);
     }
