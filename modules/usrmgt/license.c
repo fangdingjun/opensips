@@ -87,6 +87,8 @@ int license_put(struct request_msg *r, str ** ret)
     char buf[1024];
     str sql;
     db_res_t *res = NULL;
+    int exists = 0;
+
     LM_DBG
         ("devid: %.*s, license: %.*s, active code: %.*s, uuid: %.*s, ttl: %d\n",
          r->devid.len, r->devid.s, r->license.len, r->license.s,
@@ -108,8 +110,8 @@ int license_put(struct request_msg *r, str ** ret)
     /* delete the expired value and previous value */
     sprintf(buf,
             "delete from license where date_add"
-            "(start_time, interval ttl second) < now() or activecode = '%s'",
-            r->active_code.s);
+            "(start_time, interval ttl second) < now()"
+            );
     sql.s = buf;
     sql.len = strlen(buf);
     if (dbf.raw_query(db_handle, &sql, &res) < 0) {
@@ -121,6 +123,27 @@ int license_put(struct request_msg *r, str ** ret)
         res = NULL;
     }
 
+    /* query if exists */
+    sprintf(buf, "select count(*) from license where activecode= '%s'",
+            r->active_code.s);
+    sql.s = buf;
+    sql.len = strlen(buf);
+    if (dbf.raw_query(db_handle, &sql, &res) < 0) {
+        LM_ERR("query db failed\n");
+        return -2;
+    }
+    
+    if (RES_ROWS(res)[0].values[0].val.int_val > 0){
+        LM_WARN("active code %s is exists\n", r->active_code.s);
+        exists = 1;
+    }
+    if (res) {
+        dbf.free_result(db_handle, res);
+        res = NULL;
+    }
+    if (exists){
+        return -5;
+    }
     /* store it */
     sprintf(buf,
             "insert into license (devid, license, activecode, uuid, ttl, start_time) "
