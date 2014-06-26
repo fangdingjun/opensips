@@ -59,7 +59,7 @@ Bogdan-Andrei Iancu
               1.6.3. rtpproxy_answer([flags [, ip_address [,
                       set_id [, sock_pvar]]]])
 
-              1.6.4. rtpproxy_unforce([set_id [, sock_pvar]]) -
+              1.6.4. unforce_rtp_proxy([set_id [, sock_pvar]]) -
                       deprecated, rtpproxy_unforce([set_id [,
                       sock_pvar]])
 
@@ -396,7 +396,7 @@ modparam("rtpproxy", "rtpp_notify_socket", "tcp:10.10.10.10:9999")
 
 1.6.1.  engage_rtp_proxy([flags [, ip_address [, set_id [,
 sock_pvar]]]]) - deprecated, rtpproxy_engage([flags [, ip_address [,
-set_id [, sock_pvar]]]]) - deprecated
+set_id [, sock_pvar]]]])
 
    Rewrites SDP body to ensure that media is passed through an RTP
    proxy. It uses the dialog module facilities to keep track when
@@ -544,7 +544,7 @@ sock_pvar]]]])
 
    See rtpproxy_offer() function example above for example.
 
-1.6.4.  rtpproxy_unforce([set_id [, sock_pvar]]) - deprecated,
+1.6.4.  unforce_rtp_proxy([set_id [, sock_pvar]]) - deprecated,
 rtpproxy_unforce([set_id [, sock_pvar]])
 
    Tears down the RTPProxy session for the current call.
