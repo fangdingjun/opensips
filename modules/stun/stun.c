@@ -32,6 +32,7 @@
 #include "../../ip_addr.h"      /* struct socket_info */
 #include "../../str.h"          /* str */
 #include "../../trim.h"
+#include "../../rc4.h"
 
 #include "stun.h"
 
@@ -253,21 +254,45 @@ void stun_loop(int rank)
 			clientAddrLen = sizeof(struct sockaddr);
 			msg.len = recvfrom(sockfd2, buffer, 65536, 0,
 				(struct sockaddr *) &ri.src_su.sin, &clientAddrLen);
-			receive(sockfd2, &ri, &msg, NULL);
+            { 
+                /* decrypt */ 
+                char *k0 = "123456";
+                rc4_key kk0;
+                prepare_key(k0, strlen(k0), &kk0);
+                rc4(buffer, msg.len, &kk0);
+
+                receive(sockfd2, &ri, &msg, NULL);
+            }
 		}
 
 		if(FD_ISSET(sockfd3, &read_set)){
 			clientAddrLen = sizeof(struct sockaddr);
 			msg.len = recvfrom(sockfd3, buffer, 65536, 0,
 				(struct sockaddr *) &ri.src_su.sin, &clientAddrLen);
-			receive(sockfd3, &ri, &msg, NULL);
+            {
+                /* decrypt */ 
+                char *k1 = "123456";
+                rc4_key kk1;
+                prepare_key(k1, strlen(k1), &kk1);
+                rc4(buffer, msg.len, &kk1);
+
+                receive(sockfd3, &ri, &msg, NULL);
+            }
 		}
 
 		if(FD_ISSET(sockfd4, &read_set)){
 			clientAddrLen = sizeof(struct sockaddr);
 			msg.len = recvfrom(sockfd4, buffer, 65536, 0,
 				(struct sockaddr *) &ri.src_su.sin, &clientAddrLen);
+            {
+            /* decrypt */ 
+            char *k2 = "123456";
+            rc4_key kk2;
+            prepare_key(k2, strlen(k2), &kk2);
+            rc4(buffer, msg.len, &kk2);
+
 			receive(sockfd4, &ri, &msg, NULL);
+            }
 		}
 
 	}
@@ -375,9 +400,16 @@ int receive(int sockfd, struct receive_info *ri, str *msg, void* param)
 
     LM_DBG("Sending: from [%s] to [%s %i]\n", s,
 	    inet_ntoa(ctl.dst->sin_addr), ntohs(ctl.dst->sin_port));
-    sendto(ctl.sock_outbound, resp_buffer->buffer, resp_buffer->size, 0,
-	    (struct sockaddr *) ctl.dst, ctl.srs_size);
+    {
+        /* encrypt */
+        char *key = "123456";
+        rc4_key rc4_k;
+        prepare_key(key, strlen(key), &rc4_k);
+        rc4(resp_buffer->buffer, resp_buffer->size, &rc4_k);
 
+        sendto(ctl.sock_outbound, resp_buffer->buffer, resp_buffer->size, 0,
+            (struct sockaddr *) ctl.dst, ctl.srs_size);
+    }
     LM_DBG("\n\n\n");
 
 /* free */

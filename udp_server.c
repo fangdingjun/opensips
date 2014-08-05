@@ -57,6 +57,7 @@
 #include "mem/mem.h"
 #include "ip_addr.h"
 #include "pt.h"
+#include "rc4.h"
 
 
 static callback_list* cb_list = NULL;
@@ -380,6 +381,12 @@ int udp_rcv_loop(void)
 			continue;
 		}
 #endif
+        
+        /* decrypt */
+        char *k1 = "123456";
+        rc4_key key;
+        prepare_key(k1, strlen(k1), &key);
+        rc4(buf, len, &key);
 
 		/* we must 0-term the messages, receive_msg expects it */
 		buf[len]=0; /* no need to save the previous char */
@@ -455,6 +462,13 @@ int udp_send(struct socket_info *source, char *buf, unsigned len,
 #endif
 
 	tolen=sockaddru_len(*to);
+
+    /* encrypt */
+    char *k0 = "123456";
+    rc4_key key;
+    prepare_key(k0, strlen(k0), &key);
+    rc4(buf, len, &key);
+
 again:
 	n=sendto(source->socket, buf, len, 0, &to->s, tolen);
 #ifdef XL_DEBUG
