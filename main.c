@@ -229,6 +229,7 @@ int log_stderr = 1;
 int log_facility = LOG_DAEMON;
 /* the id to be printed in syslog */
 char *log_name = 0;
+char *key=0;
 int config_check = 0;
 /* check if reply first via host==us */
 int check_via =  0;

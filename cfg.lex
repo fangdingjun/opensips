@@ -281,6 +281,7 @@ SCRIPTVAR_START	"$"
 /* config vars. */
 DEBUG	debug
 FORK	fork
+KEY key
 LOGSTDERROR	log_stderror
 LOGFACILITY	log_facility
 LOGNAME		log_name
@@ -581,6 +582,7 @@ IMPORTFILE      "import_file"
 
 <INITIAL>{DEBUG}	{ count(); yylval.strval=yytext; return DEBUG; }
 <INITIAL>{FORK}		{ count(); yylval.strval=yytext; return FORK; }
+<INITIAL>{KEY}	   { count(); yylval.strval=yytext; return KEY; }
 <INITIAL>{LOGSTDERROR}	{ yylval.strval=yytext; return LOGSTDERROR; }
 <INITIAL>{LOGFACILITY}	{ yylval.strval=yytext; return LOGFACILITY; }
 <INITIAL>{LOGNAME}	{ yylval.strval=yytext; return LOGNAME; }

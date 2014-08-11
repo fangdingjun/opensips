@@ -111,6 +111,7 @@
 #include "tcp_conn.h"
 #include "db/db_insertq.h"
 #include "bin_interface.h"
+#include "rc4.h"
 
 
 #include "config.h"
@@ -306,6 +307,7 @@ extern int line;
 /* config vars. */
 %token DEBUG
 %token FORK
+%token KEY
 %token LOGSTDERROR
 %token LOGFACILITY
 %token LOGNAME
@@ -653,6 +655,7 @@ assign_stm: DEBUG EQUAL snumber {
 		| DEBUG EQUAL error  { yyerror("number  expected"); }
 		| FORK  EQUAL NUMBER { dont_fork= !dont_fork ? ! $3:1; }
 		| FORK  EQUAL error  { yyerror("boolean value expected"); }
+        | KEY EQUAL STRING { key=$3; }
 		| LOGSTDERROR EQUAL NUMBER { if (!config_check) log_stderr=$3; }
 		| LOGSTDERROR EQUAL error { yyerror("boolean value expected"); }
 		| LOGFACILITY EQUAL ID {
