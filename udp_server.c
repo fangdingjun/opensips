@@ -383,10 +383,7 @@ int udp_rcv_loop(void)
 #endif
         
         /* decrypt */
-        char *k1 = "123456";
-        rc4_key key;
-        prepare_key(k1, strlen(k1), &key);
-        rc4(buf, len, &key);
+        DECRYPT(buf, len);
 
 		/* we must 0-term the messages, receive_msg expects it */
 		buf[len]=0; /* no need to save the previous char */
@@ -464,10 +461,7 @@ int udp_send(struct socket_info *source, char *buf, unsigned len,
 	tolen=sockaddru_len(*to);
 
     /* encrypt */
-    char *k0 = "123456";
-    rc4_key key;
-    prepare_key(k0, strlen(k0), &key);
-    rc4(buf, len, &key);
+    ENCRYPT(buf, len);
 
 again:
 	n=sendto(source->socket, buf, len, 0, &to->s, tolen);
