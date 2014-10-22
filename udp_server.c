@@ -449,7 +449,7 @@ int udp_send(struct socket_info *source, char *buf, unsigned len,
 										union sockaddr_union*  to)
 {
 	int n, tolen;
-
+    char *tmp_buf;
 #ifdef DBG_MSG_QA
 	/* aborts on error, does nothing otherwise */
 	if (!dbg_msg_qa( buf, len )) {
@@ -460,11 +460,20 @@ int udp_send(struct socket_info *source, char *buf, unsigned len,
 
 	tolen=sockaddru_len(*to);
 
+    tmp_buf = malloc(len);
+
+    if (tmp_buf == NULL){
+        LM_ERR("out of memory\n");
+        return -1;
+    }
+
+    memcpy(tmp_buf, buf, len);
+
     /* encrypt */
-    ENCRYPT(buf, len);
+    ENCRYPT(tmp_buf, len);
 
 again:
-	n=sendto(source->socket, buf, len, 0, &to->s, tolen);
+	n=sendto(source->socket, tmp_buf, len, 0, &to->s, tolen);
 #ifdef XL_DEBUG
 	LM_INFO("status: %d\n", n);
 #endif
@@ -478,5 +487,6 @@ again:
 			"attempts to send to the net\n");
 		}
 	}
+    free(tmp_buf);
 	return n;
 }
